@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controllers
@@ -16,7 +17,7 @@ namespace WebApiKalum.Controllers
         public ActionResult<List<CarreraTecnicaController>> Get()
         {
             List<CarreraTecnica> carrerasTecnicas = null;
-            carrerasTecnicas = DbContext.CarreraTecnica.ToList();
+            carrerasTecnicas = DbContext.CarreraTecnica.Include(c => c.Aspirantes).ToList();
             if (carrerasTecnicas == null || carrerasTecnicas.Count == 0){
                 return new NoContentResult();
             }
