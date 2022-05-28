@@ -17,7 +17,7 @@ namespace WebApiKalum.Controllers
         public ActionResult<List<CarreraTecnicaController>> Get()
         {
             List<CarreraTecnica> carrerasTecnicas = null;
-            carrerasTecnicas = DbContext.CarreraTecnica.Include(c => c.Aspirantes).ToList();
+            carrerasTecnicas = DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(i => i.Inscripciones).ToList();
             if (carrerasTecnicas == null || carrerasTecnicas.Count == 0){
                 return new NoContentResult();
             }
