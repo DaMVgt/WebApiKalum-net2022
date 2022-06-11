@@ -41,5 +41,49 @@ namespace WebApiKalum.Controllers
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
             return Ok(carrera);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<CarreraTecnica>> PostCarreraTecnica([FromBody] CarreraTecnica value)
+        {
+            Logger.LogDebug("Iniciando el proceso de creacion de una nueva carrera técnica");
+            value.CarreraId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.CarreraTecnica.AddAsync(value);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Finalizando el proceso de creacion de una nueva carrera técnica");
+            return new CreatedAtRouteResult("GetCarreraTecnica", new { id = value.CarreraId }, value);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<CarreraTecnica>> DeleteCarreraTecnica(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminacion de una carrera técnica");
+            CarreraTecnica carreraTecnica = await DbContext.CarreraTecnica.FirstOrDefaultAsync(ct => ct.CarreraId == id);
+            if(carreraTecnica == null){
+                Logger.LogWarning($"No existe una carrera técnica con el id: {id}");
+                return NotFound();
+            }
+            else{
+                DbContext.CarreraTecnica.Remove(carreraTecnica);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation($"Finalizando el proceso de eliminacion de una carrera técnica con el id: {id}");
+                return carreraTecnica;
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> PutCarreraTecnica(string id, [FromBody] CarreraTecnica value)
+        {
+            Logger.LogDebug($"Iniciando el proceso de actualizacion de una carrera técnica con id: {id}");
+            CarreraTecnica carreraTecnica = await DbContext.CarreraTecnica.FirstOrDefaultAsync(ct => ct.CarreraId == id);
+            if(carreraTecnica == null){
+                Logger.LogWarning($"No existe una carrera técnica con el id: {id}");
+                return BadRequest();
+            }
+            carreraTecnica.Nombre = value.Nombre;
+            DbContext.Entry(carreraTecnica).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation($"Finalizando el proceso de actualizacion de una carrera técnica con id: {id}");
+            return NoContent();
+        }
     }
 }
