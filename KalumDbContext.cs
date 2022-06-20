@@ -31,7 +31,7 @@ namespace WebApiKalum
             modelBuilder.Entity<Alumno>().ToTable("Alumno").HasKey(al => new { al.Carne });
             modelBuilder.Entity<Cargo>().ToTable("Cargo").HasKey(c => new { c.CargoId });
             modelBuilder.Entity<CuentaXCobrar>().ToTable("CuentaXCobrar").HasKey(cxc => new { cxc.Cargo, cxc.Anio, cxc.Carne });
-            modelBuilder.Entity<InversionCarreraTecnica>().ToTable("InvversionCarreraTecnica").HasKey(ict => new { ict.InversionId });
+            modelBuilder.Entity<InversionCarreraTecnica>().ToTable("InversionCarreraTecnica").HasKey(ict => new { ict.InversionId });
             modelBuilder.Entity<InscripcionPago>().ToTable("InscripcionPago").HasKey(ip => new { ip.BoletaPago, ip.NoExpediente, ip.Anio });
             modelBuilder.Entity<ResultadoExamenAdmision>().ToTable("ResultadoExamenAdmsion").HasKey(rea => new { rea.NoExpediente, rea.Anio });
 

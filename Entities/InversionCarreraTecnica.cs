@@ -4,9 +4,9 @@ namespace WebApiKalum.Entities
     {
         public string InversionId { get; set; }
         public string CarreraId { get; set; }
-        public double MontoInscripcion { get; set; }
+        public decimal MontoInscripcion { get; set; }
         public int NumeroPagos { get; set; }
-        public double MontoPago { get; set; }
+        public decimal MontoPago { get; set; }
         public CarreraTecnica CarreraTecnica { get; set; }
     }
 }
