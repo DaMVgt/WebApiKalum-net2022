@@ -8,7 +8,12 @@ namespace WebApiKalum.Utilities
     {
         public AutoMapperProfiles()
         {
-            CreateMap<CarreraTecnicaCreateDTO,CarreraTecnica>();
+            CreateMap<CarreraTecnicaCreateDTO, CarreraTecnica>();
+            CreateMap<CarreraTecnica, CarreraTecnicaCreateDTO>();
+            CreateMap<Jornada, JornadaCreateDTO>();
+            CreateMap<ExamenAdmision, ExamenAdmisionCreateDTO>();
+            CreateMap<Aspirante, AspiranteListDTO>().ConstructUsing(e => new AspiranteListDTO { NombreCompleto = $"{e.Apellidos} {e.Nombres}" });
+
         }
     }
 }

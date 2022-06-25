@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Utilities;
 
 namespace WebApiKalum
 {
@@ -12,7 +13,8 @@ namespace WebApiKalum
 
         public void ConfigureServices(IServiceCollection _services)
         {
-            _services.AddControllers();
+            _services.AddTransient<ActionFilter>();
+            _services.AddControllers(options => options.Filters.Add(typeof(ErrorFilterException)));
             _services.AddAutoMapper(typeof(Startup));
             _services.AddControllers().AddNewtonsoftJson(options =>
             {

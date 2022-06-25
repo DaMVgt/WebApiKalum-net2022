@@ -1,6 +1,9 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
+using WebApiKalum.Utilities;
 
 namespace WebApiKalum.Controllers
 {
@@ -10,24 +13,27 @@ namespace WebApiKalum.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<AspiranteController> Logger;
-        public AspiranteController(KalumDbContext _dbContext, ILogger<AspiranteController> _Logger)
+        private readonly IMapper Mapper;
+        public AspiranteController(KalumDbContext _dbContext, ILogger<AspiranteController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Aspirante>>> Get()
+        [ServiceFilter(typeof(ActionFilter))]
+        public async Task<ActionResult<IEnumerable<AspiranteListDTO>>> Get()
         {
-            List<Aspirante> aspirantes = null;
             Logger.LogDebug("Iniciando proceso de consulta de aspirantes en la base de datos");
-            aspirantes = await DbContext.Aspirante.Include(a => a.ResultadoExamenAdmision).Include(a => a.InscripcionPago).ToListAsync();
+            List<Aspirante> aspirantes = await DbContext.Aspirante.Include(a => a.Jornada).Include(a => a.CarreraTecnica).Include( a => a.ExamenAdmision).ToListAsync();
             if (aspirantes == null || aspirantes.Count == 0)
             {
                 Logger.LogWarning("No existen aspirantes en la base de datos");
                 return new NoContentResult();
             }
+            List<AspiranteListDTO> lista = Mapper.Map<List<AspiranteListDTO>>(aspirantes);
             Logger.LogInformation("Se ejecuto la preticion de forma exitosa");
-            return Ok(aspirantes);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetAspirante")]
         public async Task<ActionResult<Aspirante>> GetAspirante(string id)
