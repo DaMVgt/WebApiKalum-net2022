@@ -25,7 +25,7 @@ namespace WebApiKalum.Controllers
         public async Task<ActionResult<IEnumerable<AspiranteListDTO>>> Get()
         {
             Logger.LogDebug("Iniciando proceso de consulta de aspirantes en la base de datos");
-            List<Aspirante> aspirantes = await DbContext.Aspirante.Include(a => a.Jornada).Include(a => a.CarreraTecnica).Include( a => a.ExamenAdmision).ToListAsync();
+            List<Aspirante> aspirantes = await DbContext.Aspirante.Include(a => a.Jornada).Include(a => a.CarreraTecnica).Include(a => a.ExamenAdmision).ToListAsync();
             if (aspirantes == null || aspirantes.Count == 0)
             {
                 Logger.LogWarning("No existen aspirantes en la base de datos");
@@ -74,6 +74,46 @@ namespace WebApiKalum.Controllers
             await DbContext.SaveChangesAsync();
             Logger.LogInformation($"Se creo un aspirante con el id: {value.NoExpediente}");
             return Ok(value);
+        }
+        [HttpPut]
+        public async Task<ActionResult> PutAspirante(string id, [FromBody] Aspirante value)
+        {
+            Logger.LogDebug($"Iniciando el proceso de actualizacion de un aspirante con el id: {id}");
+            Aspirante aspirante = await DbContext.Aspirante.FirstOrDefaultAsync(a => a.NoExpediente == id);
+            if (aspirante == null)
+            {
+                Logger.LogWarning($"No existe un aspirante con el id: {id}");
+                return NotFound();
+            }
+            aspirante.Apellidos = value.Apellidos;
+            aspirante.Nombres = value.Nombres;
+            aspirante.Direccion = value.Direccion;
+            aspirante.Telefono = value.Email;
+            aspirante.Estatus = value.Estatus;
+            aspirante.CarreraId = value.CarreraId;
+            aspirante.JornadaId = value.JornadaId;
+            aspirante.ExamenId = value.ExamenId;
+            DbContext.Entry(aspirante).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation($"Finalizando el proceso de actualizacion de un aspirante con el id: {id}");
+            return NoContent();
+        }
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Aspirante>> DeleteAspirante(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminacion de un cargo");
+            Aspirante aspirante = await DbContext.Aspirante.FirstOrDefaultAsync(a => a.NoExpediente == id);
+            if (aspirante == null)
+            {
+                Logger.LogWarning($"No existe un aspirante con el id {id}");
+                return NotFound();
+            }
+            else{
+                DbContext.Aspirante.Remove(aspirante);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation("Finalizando el proceso de eliminacion deun aspirante");
+                return aspirante;
+            }
         }
     }
 }
