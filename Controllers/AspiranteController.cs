@@ -36,17 +36,18 @@ namespace WebApiKalum.Controllers
             return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetAspirante")]
-        public async Task<ActionResult<Aspirante>> GetAspirante(string id)
+        public async Task<ActionResult<AspiranteListDTO>> GetAspirante(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busca con el id: " + id);
-            var aspirante = await DbContext.Aspirante.Include(a => a.ResultadoExamenAdmision).Include(a => a.InscripcionPago).FirstOrDefaultAsync(a => a.NoExpediente == id);
+            var aspirante = await DbContext.Aspirante.Include(a => a.Jornada).Include(a => a.CarreraTecnica).Include(a => a.ExamenAdmision).FirstOrDefaultAsync(a => a.NoExpediente == id);
             if (aspirante == null)
             {
                 Logger.LogWarning("No existe un aspirante con el id: " + id);
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<AspiranteListDTO>(aspirante);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(aspirante);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<Aspirante>> PostAspirante([FromBody] Aspirante value)
