@@ -20,32 +20,33 @@ namespace WebApiKalum.Controllers
             this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CarreraTecnica>>> Get()
+        public async Task<ActionResult<IEnumerable<CarreraTecnicaListDTO>>> Get()
         {
-            List<CarreraTecnica> carrerasTecnicas = null;
             Logger.LogDebug("Iniciando proceso de consulta de carreras técnicas en la base de datos");
-            carrerasTecnicas = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(i => i.Inscripciones).Include(c => c.Inversiones).ToListAsync();
+            List<CarreraTecnica> carrerasTecnicas = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(c => c.Inscripciones).ToListAsync();
             if (carrerasTecnicas == null || carrerasTecnicas.Count == 0)
             {
                 Logger.LogWarning("No existen carreras técnicas en la base de datos");
                 return new NoContentResult();
             }
+            List<CarreraTecnicaListDTO> lista = Mapper.Map<List<CarreraTecnicaListDTO>>(carrerasTecnicas);
             Logger.LogInformation("Se ejecutó la peticion de forma exitosa");
-            return Ok(carrerasTecnicas);
+            return Ok(lista);
         }
 
         [HttpGet("{id}", Name = "GetCarreraTecnica")]
-        public async Task<ActionResult<CarreraTecnica>> GetCarreraTecnica(string id)
+        public async Task<ActionResult<CarreraTecnicaListDTO>> GetCarreraTecnica(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busca con el id: " + id);
-            var carrera = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(c => c.Inscripciones).Include(c => c.Inversiones).FirstOrDefaultAsync(ct => ct.CarreraId == id);
+            var carrera = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(c => c.Inscripciones).FirstOrDefaultAsync(ct => ct.CarreraId == id);
             if (carrera == null)
             {
                 Logger.LogWarning("No existe una carrera técnica con el id: " + id);
                 return new NoContentResult();
             }
+            var carreraTecnica = Mapper.Map<CarreraTecnicaListDTO>(carrera);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(carrera);
+            return Ok(carreraTecnica);
         }
 
         [HttpPost]
