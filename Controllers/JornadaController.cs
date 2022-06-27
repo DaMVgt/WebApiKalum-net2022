@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controllers
@@ -10,54 +12,64 @@ namespace WebApiKalum.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<JornadaController> Logger;
-        public JornadaController(KalumDbContext _dbContext, ILogger<JornadaController> _Logger)
+        private readonly IMapper Mapper;
+        public JornadaController(KalumDbContext _dbContext, ILogger<JornadaController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Jornada>>> Get()
+        public async Task<ActionResult<IEnumerable<JornadaListDTO>>> Get()
         {
-            List<Jornada> jornadas = null;
             Logger.LogDebug("Iniciando proceso de consulta de jornadas en la base de datos");
-            jornadas = await DbContext.Jornada.Include(j => j.Aspirantes).Include(j => j.Inscripciones).ToListAsync();
-            if (jornadas == null || jornadas.Count == 0){
+            List<Jornada> jornadas = await DbContext.Jornada.Include(j => j.Aspirantes).Include(j => j.Inscripciones).ToListAsync();
+            if (jornadas == null || jornadas.Count == 0)
+            {
                 Logger.LogWarning("No existen jornadas en la base de datos");
                 return new NoContentResult();
             }
-            return Ok(jornadas);
+            List<JornadaListDTO> lista = Mapper.Map<List<JornadaListDTO>>(jornadas);
+            Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetJornada")]
-        public async Task<ActionResult<Jornada>> GetJornada(string id)
+        public async Task<ActionResult<JornadaListDTO>> GetJornada(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busca con el id: " + id);
             var jornada = await DbContext.Jornada.Include(j => j.Aspirantes).Include(j => j.Inscripciones).FirstOrDefaultAsync(j => j.JornadaId == id);
-            if (jornada == null){
+            if (jornada == null)
+            {
                 Logger.LogWarning("No existe una jornada con el id: " + id);
                 return new NoContentResult();
             }
-            return Ok(jornada);
+            var lista = Mapper.Map<JornadaListDTO>(jornada);
+            Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
+            return Ok(lista);
         }
         [HttpPost]
-        public async Task<ActionResult<Jornada>> PostJornda([FromBody] Jornada value)
+        public async Task<ActionResult<Jornada>> PostJornda([FromBody] JornadaCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de creacion de una jornada");
-            value.JornadaId = Guid.NewGuid().ToString().ToUpper();
-            await DbContext.Jornada.AddAsync(value);
+            Jornada nuevo = Mapper.Map<Jornada>(value);
+            nuevo.JornadaId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.Jornada.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se ha creado una jornada con el id: ");
-            return new CreatedAtRouteResult("GetJornada", new { id = value.JornadaId }, value);
+            return new CreatedAtRouteResult("GetJornada", new { id = nuevo.JornadaId }, value);
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult<Jornada>> DeleteJornada(string id)
         {
             Logger.LogDebug("Iniciando el proceso de eliminacion de una jornada");
             Jornada jornada = await DbContext.Jornada.FirstOrDefaultAsync(j => j.JornadaId == id);
-            if (jornada == null){
+            if (jornada == null)
+            {
                 Logger.LogWarning($"No existe una jornada con el id: {id}");
                 return NotFound();
             }
-            else{
+            else
+            {
                 DbContext.Jornada.Remove(jornada);
                 await DbContext.SaveChangesAsync();
                 Logger.LogInformation($"Se ha eliminado la jornada con el id: {id}");
@@ -69,7 +81,8 @@ namespace WebApiKalum.Controllers
         {
             Logger.LogDebug($"Iniciando el proceso de actualizacion de la jornada con el id: {id}");
             Jornada jornada = await DbContext.Jornada.FirstOrDefaultAsync(j => j.JornadaId == id);
-            if(jornada == null){
+            if (jornada == null)
+            {
                 Logger.LogWarning($"No existe una jornada con el id: {id}");
                 return BadRequest();
             }
