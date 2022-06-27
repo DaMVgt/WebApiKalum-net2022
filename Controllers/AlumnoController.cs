@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controllers
@@ -10,35 +12,40 @@ namespace WebApiKalum.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<AlumnoController> Logger;
-        public AlumnoController(KalumDbContext _dbContext, ILogger<AlumnoController> _Logger)
+        private readonly IMapper Mapper;
+        public AlumnoController(KalumDbContext _dbContext, ILogger<AlumnoController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Alumno>>> Get()
+        public async Task<ActionResult<IEnumerable<AlumnoListDTO>>> Get()
         {
-            List<Alumno> alumnos = null;
             Logger.LogDebug("Iniciando proceso de consulta de alumnos en la base de datos");
-            alumnos = await DbContext.Alumno.Include(a => a.Inscripciones).Include(a => a.CuentaXCobrar).ToListAsync();
-            if (alumnos == null || alumnos.Count == 0){
+            List<Alumno> alumnos = await DbContext.Alumno.Include(a => a.Inscripciones).Include(a => a.CuentaXCobrar).ToListAsync();
+            if (alumnos == null || alumnos.Count == 0)
+            {
                 Logger.LogWarning("No existen alumnos en la base de datos");
                 return new NoContentResult();
             }
+            List<AlumnoListDTO> lista = Mapper.Map<List<AlumnoListDTO>>(alumnos);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(alumnos);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetAlumno")]
         public async Task<ActionResult<Alumno>> GetAlumno(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busca con el id: " + id);
             var alumno = await DbContext.Alumno.Include(a => a.Inscripciones).Include(a => a.CuentaXCobrar).FirstOrDefaultAsync(a => a.Carne == id);
-            if (alumno == null){
+            if (alumno == null)
+            {
                 Logger.LogWarning("No existe un alumno con el id: " + id);
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<AlumnoListDTO>(alumno);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(alumno);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<Alumno>> PostAlumno([FromBody] Alumno value)
@@ -55,11 +62,13 @@ namespace WebApiKalum.Controllers
         {
             Logger.LogDebug("Iniciando el proceso de eliminacion de un alumno");
             Alumno alumno = await DbContext.Alumno.FirstOrDefaultAsync(a => a.Carne == id);
-            if (alumno == null){
+            if (alumno == null)
+            {
                 Logger.LogWarning("No existe un alumno con el id: " + id);
                 return NotFound();
             }
-            else{
+            else
+            {
                 DbContext.Alumno.Remove(alumno);
                 await DbContext.SaveChangesAsync();
                 Logger.LogInformation("Finalizando el proceso de eliminacion de un alumno");
@@ -72,7 +81,8 @@ namespace WebApiKalum.Controllers
         {
             Logger.LogDebug($"Iniciando el proceso de actualizacion de un alumno con el id: {id}");
             Alumno alumno = await DbContext.Alumno.FirstOrDefaultAsync(a => a.Carne == id);
-            if(alumno == null){
+            if (alumno == null)
+            {
                 Logger.LogWarning($"No existe un alumno con el id: {id}");
                 return BadRequest();
             }
