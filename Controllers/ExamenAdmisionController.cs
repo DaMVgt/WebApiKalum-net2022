@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controller
@@ -10,24 +12,26 @@ namespace WebApiKalum.Controller
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<ExamenAdmisionController> Logger;
-        public ExamenAdmisionController(KalumDbContext _dbContext, ILogger<ExamenAdmisionController> _Logger)
+        private readonly IMapper Mapper;
+        public ExamenAdmisionController(KalumDbContext _dbContext, ILogger<ExamenAdmisionController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ExamenAdmision>>> Get()
+        public async Task<ActionResult<IEnumerable<ExamenAdmisionListDTO>>> Get()
         {
-            List<ExamenAdmision> examenAdmision = null;
             Logger.LogDebug("Iniciando proceso de consulta en la base de datos");
-            examenAdmision = await DbContext.ExamenAdmision.Include(e => e.Aspirantes).ToListAsync();
+            List<ExamenAdmision> examenAdmision = await DbContext.ExamenAdmision.Include(e => e.Aspirantes).ToListAsync();
             if (examenAdmision == null || examenAdmision.Count == 0)
             {
                 Logger.LogWarning("No existen examenes en la base de datos");
                 return new NoContentResult();
             }
+            List<ExamenAdmisionListDTO> lista = Mapper.Map<List<ExamenAdmisionListDTO>>(examenAdmision);
             Logger.LogInformation("Se consultaron los examenes exitosamente");
-            return Ok(examenAdmision);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetExamenAdmision")]
         public async Task<ActionResult<ExamenAdmision>> GetExamenAdmision(string id)
@@ -39,19 +43,21 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning("No existe un examen con el id: " + id);
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<ExamenAdmisionListDTO>(examenAdmision);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(examenAdmision);
+            return Ok(lista);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ExamenAdmision>> PostExamenAdmision([FromBody] ExamenAdmision value)
+        public async Task<ActionResult<ExamenAdmision>> PostExamenAdmision([FromBody] ExamenAdmisionCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de creacion de un examen");
-            value.ExamenId = Guid.NewGuid().ToString().ToUpper();
-            await DbContext.ExamenAdmision.AddAsync(value);
+            ExamenAdmision nuevo = Mapper.Map<ExamenAdmision>(value);
+            nuevo.ExamenId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.ExamenAdmision.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se creo el examen exitosamente");
-            return new CreatedAtRouteResult("GetExamenAdmision", new { id = value.ExamenId }, value);
+            return new CreatedAtRouteResult("GetExamenAdmision", new { id = nuevo.ExamenId }, nuevo);
         }
 
         [HttpDelete("{id}")]
