@@ -29,6 +29,8 @@ namespace WebApiKalum.Utilities
             CreateMap<ResultadoExamenAdmision, ResultadoExamenAdmisionListDTO>();
             CreateMap<Alumno, AlumnoViewDTO>().ConstructUsing(e => new AlumnoViewDTO { NombreCompleto = $"{e.Apellidos} {e.Nombres}" });
             CreateMap<Inscripcion, InscripcionesListDTO>();
+            CreateMap<InversionCarreraTecnica, InversionCarreraTecnicaListDTO>();
+            CreateMap<InversionCarreraTecnicaCreateDTO, InversionCarreraTecnica>();
         }
     }
 }

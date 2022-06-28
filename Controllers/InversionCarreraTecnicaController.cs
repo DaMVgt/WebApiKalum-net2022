@@ -1,5 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos.Creates;
+using WebApiKalum.Dtos.Lists;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controller
@@ -10,13 +13,15 @@ namespace WebApiKalum.Controller
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<InversionCarreraTecnicaController> Logger;
-        public InversionCarreraTecnicaController(KalumDbContext _dbContext, ILogger<InversionCarreraTecnicaController> _Logger)
+        private readonly IMapper Mapper;
+        public InversionCarreraTecnicaController(KalumDbContext _dbContext, ILogger<InversionCarreraTecnicaController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InversionCarreraTecnica>>> Get()
+        public async Task<ActionResult<IEnumerable<InversionCarreraTecnicaListDTO>>> Get()
         {
             Logger.LogDebug("Iniciando proceso de consulta de inversion carrera tecnica en la base de datos");
             List<InversionCarreraTecnica> inversionCarreraTecnicas = await DbContext.InversionCarreraTecnica.Include(ict => ict.CarreraTecnica).ToListAsync();
@@ -25,11 +30,12 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning("No existen inversiones de carreras tecnicas en la base de datos");
                 return new NoContentResult();
             }
+            List<InversionCarreraTecnicaListDTO> lista = Mapper.Map<List<InversionCarreraTecnicaListDTO>>(inversionCarreraTecnicas);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(inversionCarreraTecnicas);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetInversionCarreraTecnica")]
-        public async Task<ActionResult<InversionCarreraTecnica>> GetInversionCarreraTecnica(string id)
+        public async Task<ActionResult<InversionCarreraTecnicaListDTO>> GetInversionCarreraTecnica(string id)
         {
             Logger.LogDebug($"Iniciando el proceso de inversion con ID: {id}");
             var inversionCarreraTecnica = await DbContext.InversionCarreraTecnica.Include(ict => ict.CarreraTecnica).FirstOrDefaultAsync(ict => ict.InversionId == id);
@@ -38,24 +44,26 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning($"No existe una inversion con el ID: {id}");
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<InversionCarreraTecnicaListDTO>(inversionCarreraTecnica);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(inversionCarreraTecnica);
+            return Ok(lista);
         }
         [HttpPost]
-        public async Task<ActionResult<InversionCarreraTecnica>> PostInversionCarreraTecnica([FromBody] InversionCarreraTecnica value)
+        public async Task<ActionResult<InversionCarreraTecnica>> PostInversionCarreraTecnica([FromBody] InversionCarreraTecnicaCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de creacion de un nuevo  cargo");
-            value.InversionId = Guid.NewGuid().ToString().ToUpper();
+            InversionCarreraTecnica nuevo = Mapper.Map<InversionCarreraTecnica>(value);
+            nuevo.InversionId = Guid.NewGuid().ToString().ToUpper();
             CarreraTecnica carreraTecnica = await DbContext.CarreraTecnica.FirstOrDefaultAsync(ct => ct.CarreraId == value.CarreraId);
             if (carreraTecnica == null)
             {
                 Logger.LogInformation($"No existe una carrera tecnica con el ID {value.CarreraId}");
                 return BadRequest();
             }
-            await DbContext.InversionCarreraTecnica.AddAsync(value);
+            await DbContext.InversionCarreraTecnica.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Finalizando el proceso de creacion de una nuevo inversion");
-            return new CreatedAtRouteResult("GetInversionCarreraTecnica", new { id = value.InversionId }, value);
+            return new CreatedAtRouteResult("GetInversionCarreraTecnica", new { id = nuevo.InversionId }, nuevo);
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult<InversionCarreraTecnica>> DeleteInversionCarreraTecnica(string id)
