@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controller
@@ -10,14 +12,16 @@ namespace WebApiKalum.Controller
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<ResultadoExamenAdmisionController> Logger;
-        public ResultadoExamenAdmisionController(KalumDbContext _dbContext, ILogger<ResultadoExamenAdmisionController> _Logger)
+        private readonly IMapper Mapper;
+        public ResultadoExamenAdmisionController(KalumDbContext _dbContext, ILogger<ResultadoExamenAdmisionController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ResultadoExamenAdmision>>> Get()
+        public async Task<ActionResult<IEnumerable<ResultadoExamenAdmisionListDTO>>> Get()
         {
             Logger.LogDebug("Iniciando el proceso de consulta de resultados de examenes en la base de datos");
             List<ResultadoExamenAdmision> resultadoExamenAdmisions = await DbContext.ResultadoExamenAdmision.Include(rea => rea.Aspirante).ToListAsync();
@@ -26,11 +30,12 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning("No existen resultados de examenes en la base de datos");
                 return new NoContentResult();
             }
+            List<ResultadoExamenAdmisionListDTO> lista = Mapper.Map<List<ResultadoExamenAdmisionListDTO>>(resultadoExamenAdmisions);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(resultadoExamenAdmisions);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetResultadoExamenAdmision")]
-        public async Task<ActionResult<ResultadoExamenAdmision>> GetResultadoExamenAdmision(string id)
+        public async Task<ActionResult<ResultadoExamenAdmisionListDTO>> GetResultadoExamenAdmision(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda de resultado con ");
             var resultadoExamenAdmisions = await DbContext.ResultadoExamenAdmision.Include(rea => rea.Aspirante).FirstOrDefaultAsync(rea => rea.NoExpediente == id);
@@ -39,8 +44,9 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning($"No existe ningun resultado con expediente {id}");
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<ResultadoExamenAdmisionListDTO>(resultadoExamenAdmisions);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(resultadoExamenAdmisions);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<ResultadoExamenAdmision>> PostResultadoExamenAdmision([FromBody] ResultadoExamenAdmision value)
