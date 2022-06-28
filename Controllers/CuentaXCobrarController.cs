@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controller
@@ -10,13 +12,15 @@ namespace WebApiKalum.Controller
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<CuentaXCobrarController> Logger;
-        public CuentaXCobrarController(KalumDbContext _dbContext, ILogger<CuentaXCobrarController> _Logger)
+        private readonly IMapper Mapper;
+        public CuentaXCobrarController(KalumDbContext _dbContext, ILogger<CuentaXCobrarController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CuentaXCobrar>>> Get()
+        public async Task<ActionResult<IEnumerable<AlumnoCuentaXCobrarDTO>>> Get()
         {
             List<CuentaXCobrar> cuentaXCobrar = await DbContext.CuentaXCobrar.ToListAsync();
             if (cuentaXCobrar == null || cuentaXCobrar.Count == 0)
@@ -24,21 +28,23 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning("No existen cuentas por cobrar en la base de datos");
                 return new NoContentResult();
             }
+            List<AlumnoCuentaXCobrarDTO> lista = Mapper.Map<List<AlumnoCuentaXCobrarDTO>>(cuentaXCobrar);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(cuentaXCobrar);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetCuentaXCobrar")]
-        public async Task<ActionResult<CuentaXCobrar>> GetCuentaxCobrar(string id)
+        public async Task<ActionResult<AlumnoCuentaXCobrarDTO>> GetCuentaxCobrar(string id)
         {
             Logger.LogDebug($"Iniciando el proceso de busqueda con el id: {id}");
-            var cuentaXCobrar = await DbContext.CuentaXCobrar.FirstOrDefaultAsync(cxc => cxc.Cargo == id);
+            var cuentaXCobrar = await DbContext.CuentaXCobrar.FirstOrDefaultAsync(cxc => cxc.CargoId == id);
             if (cuentaXCobrar == null)
             {
                 Logger.LogWarning($"No existe una cuenta por cobrar con ID: {id}");
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<AlumnoCuentaXCobrarDTO>(cuentaXCobrar);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(cuentaXCobrar);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<CuentaXCobrar>> PostCuentaXCobrar([FromBody] CuentaXCobrar value)
