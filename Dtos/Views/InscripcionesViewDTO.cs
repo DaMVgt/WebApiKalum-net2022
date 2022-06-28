@@ -1,6 +1,6 @@
-namespace WebApiKalum.Dtos
+namespace WebApiKalum.Dtos.Views
 {
-    public class CarreraTecnicaInscripcionesDTO
+    public class InscripcionesViewDTO
     {
         public string Carne { get; set; }
         public string Ciclo { get; set; }

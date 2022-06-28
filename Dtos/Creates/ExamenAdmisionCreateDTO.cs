@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WebApiKalum.Dtos
+namespace WebApiKalum.Dtos.Creates
 {
     public class ExamenAdmisionCreateDTO
     {

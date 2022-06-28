@@ -1,4 +1,6 @@
-namespace WebApiKalum.Dtos
+using WebApiKalum.Dtos.Views;
+
+namespace WebApiKalum.Dtos.Lists
 {
     public class CargoListDTO
     {
@@ -6,6 +8,6 @@ namespace WebApiKalum.Dtos
         public string Descripcion { get; set; }
         public string Prefijo { get; set; }
         public decimal Monto { get; set; }
-        public List<AlumnoCuentaXCobrarDTO> CuentasXCobrar { get; set; }
+        public List<CuentaXCobrarViewDTO> CuentasXCobrar { get; set; }
     }
 }

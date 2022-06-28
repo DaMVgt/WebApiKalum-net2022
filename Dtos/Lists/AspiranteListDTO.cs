@@ -1,4 +1,6 @@
-namespace WebApiKalum.Dtos
+using WebApiKalum.Dtos.Creates;
+
+namespace WebApiKalum.Dtos.Lists
 {
     public class AspiranteListDTO
     {

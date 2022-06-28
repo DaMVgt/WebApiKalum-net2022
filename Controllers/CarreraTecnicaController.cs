@@ -1,7 +1,8 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApiKalum.Dtos;
+using WebApiKalum.Dtos.Creates;
+using WebApiKalum.Dtos.Lists;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controllers

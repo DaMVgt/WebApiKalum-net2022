@@ -1,6 +1,7 @@
+using WebApiKalum.Dtos.Creates;
 using WebApiKalum.Dtos.Views;
 
-namespace WebApiKalum.Dtos
+namespace WebApiKalum.Dtos.Lists
 {
     public class InscripcionesListDTO
     {

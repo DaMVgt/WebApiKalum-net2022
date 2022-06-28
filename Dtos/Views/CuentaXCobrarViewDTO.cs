@@ -1,6 +1,6 @@
-namespace WebApiKalum.Dtos
+namespace WebApiKalum.Dtos.Views
 {
-    public class AlumnoCuentaXCobrarDTO
+    public class CuentaXCobrarViewDTO 
     {
         public string Cargo { get; set; }
         public string Descripcion { get; set; }

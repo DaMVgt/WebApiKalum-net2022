@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApiKalum.Dtos;
+using WebApiKalum.Dtos.Views;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controller
@@ -20,7 +20,7 @@ namespace WebApiKalum.Controller
             this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AlumnoCuentaXCobrarDTO>>> Get()
+        public async Task<ActionResult<IEnumerable<CuentaXCobrarViewDTO>>> Get()
         {
             List<CuentaXCobrar> cuentaXCobrar = await DbContext.CuentaXCobrar.ToListAsync();
             if (cuentaXCobrar == null || cuentaXCobrar.Count == 0)
@@ -28,12 +28,12 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning("No existen cuentas por cobrar en la base de datos");
                 return new NoContentResult();
             }
-            List<AlumnoCuentaXCobrarDTO> lista = Mapper.Map<List<AlumnoCuentaXCobrarDTO>>(cuentaXCobrar);
+            List<CuentaXCobrarViewDTO> lista = Mapper.Map<List<CuentaXCobrarViewDTO>>(cuentaXCobrar);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
             return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetCuentaXCobrar")]
-        public async Task<ActionResult<AlumnoCuentaXCobrarDTO>> GetCuentaxCobrar(string id)
+        public async Task<ActionResult<CuentaXCobrarViewDTO>> GetCuentaxCobrar(string id)
         {
             Logger.LogDebug($"Iniciando el proceso de busqueda con el id: {id}");
             var cuentaXCobrar = await DbContext.CuentaXCobrar.FirstOrDefaultAsync(cxc => cxc.CargoId == id);
@@ -42,7 +42,7 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning($"No existe una cuenta por cobrar con ID: {id}");
                 return new NoContentResult();
             }
-            var lista = Mapper.Map<AlumnoCuentaXCobrarDTO>(cuentaXCobrar);
+            var lista = Mapper.Map<CuentaXCobrarViewDTO>(cuentaXCobrar);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
             return Ok(lista);
         }

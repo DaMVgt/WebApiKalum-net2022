@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
-namespace WebApiKalum.Dtos
+namespace WebApiKalum.Dtos.Creates
 {
     public class CargoCreateDTO
     {
