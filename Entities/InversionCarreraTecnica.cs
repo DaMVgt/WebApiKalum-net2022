@@ -10,12 +10,12 @@ namespace WebApiKalum.Entities
         [Required]
         public string CarreraId { get; set; }
         [Required]
-        [Precision(10,2)]
+        [Precision(10, 2)]
         public decimal MontoInscripcion { get; set; }
         [Required]
         public int NumeroPagos { get; set; }
         [Required]
-        [Precision(10,2)]
+        [Precision(10, 2)]
         public decimal MontoPago { get; set; }
         public CarreraTecnica CarreraTecnica { get; set; }
     }
