@@ -23,6 +23,8 @@ namespace WebApiKalum.Utilities
             CreateMap<CuentaXCobrar, AlumnoCuentaXCobrarDTO>();
             CreateMap<ExamenAdmisionCreateDTO, ExamenAdmision>();
             CreateMap<ExamenAdmision, ExamenAdmisionListDTO>();
+            CreateMap<CargoCreateDTO, Cargo>();
+            CreateMap<Cargo, CargoListDTO>();
         }
     }
 }

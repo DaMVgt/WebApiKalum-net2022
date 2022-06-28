@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controllers
@@ -10,27 +12,29 @@ namespace WebApiKalum.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<CargoController> Logger;
-        public CargoController(KalumDbContext _dbContext, ILogger<CargoController> _Logger)
+        private readonly IMapper Mapper;
+        public CargoController(KalumDbContext _dbContext, ILogger<CargoController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cargo>>> Get()
+        public async Task<ActionResult<IEnumerable<CargoListDTO>>> Get()
         {
-            List<Cargo> cargos = null;
             Logger.LogDebug("Iniciando proceso de consulta de cargos en la base de datos");
-            cargos = await DbContext.Cargo.Include(c => c.CuentasXCobrar).ToListAsync();
+            List<Cargo> cargos = await DbContext.Cargo.Include(c => c.CuentasXCobrar).ToListAsync();
             if (cargos == null || cargos.Count == 0)
             {
                 Logger.LogWarning("No existen cargos en la base de datos");
                 return new NoContentResult();
             }
+            List<CargoListDTO> lista = Mapper.Map<List<CargoListDTO>>(cargos);
             Logger.LogInformation("Se ejecutó la peticion de forma exitosa");
-            return Ok(cargos);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetCargo")]
-        public async Task<ActionResult<Cargo>> GetCargo(string id)
+        public async Task<ActionResult<CargoListDTO>> GetCargo(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busca con el id: " + id);
             var cargo = await DbContext.Cargo.Include(c => c.CuentasXCobrar).FirstOrDefaultAsync(c => c.CargoId == id);
@@ -39,32 +43,35 @@ namespace WebApiKalum.Controllers
                 Logger.LogWarning("No existe un cargo con el id: " + id);
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<CargoListDTO>(cargo);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(cargo);
+            return Ok(lista);
         }
         [HttpPost]
-        public async Task<ActionResult<Cargo>> PostCargo([FromBody] Cargo value)
+        public async Task<ActionResult<Cargo>> PostCargo([FromBody] CargoCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de creacion de un nuevo cargo");
-            value.CargoId = Guid.NewGuid().ToString().ToUpper();
-            value.GeneraMora = false;
-            value.PorcentajeMora = 0;
-            await DbContext.Cargo.AddAsync(value);
+            Cargo nuevo = Mapper.Map<Cargo>(value);
+            nuevo.CargoId = Guid.NewGuid().ToString().ToUpper();
+            nuevo.GeneraMora = false;
+            nuevo.PorcentajeMora = 0;
+            await DbContext.Cargo.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Finalizando el proceso de creacion de un nuevo cargo");
-            return new CreatedAtRouteResult("GetCargo", new { id = value.CargoId }, value);
+            return new CreatedAtRouteResult("GetCargo", new { id = nuevo.CargoId }, nuevo);
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult<Cargo>> DeleteCargo(string id)
         {
             Logger.LogDebug("Iniciando el proceso de eliminacion de un cargo");
             Cargo cargo = await DbContext.Cargo.FirstOrDefaultAsync(c => c.CargoId == id);
-            if(cargo == null)
+            if (cargo == null)
             {
                 Logger.LogWarning($"No existe un cargo con el id: {id}");
                 return NotFound();
             }
-            else{
+            else
+            {
                 DbContext.Cargo.Remove(cargo);
                 await DbContext.SaveChangesAsync();
                 Logger.LogInformation("Finalizando el proceso de eliminacion de un cargo");
@@ -76,7 +83,8 @@ namespace WebApiKalum.Controllers
         {
             Logger.LogDebug($"Iniciando el proceso de actualizacion de un cargo con el id: {id}");
             Cargo cargo = await DbContext.Cargo.FirstOrDefaultAsync(c => c.CargoId == id);
-            if(cargo == null){
+            if (cargo == null)
+            {
                 Logger.LogWarning($"No existe un cargo con el id: {id}");
                 return NotFound();
             }
