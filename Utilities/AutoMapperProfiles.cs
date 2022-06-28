@@ -1,5 +1,6 @@
 using AutoMapper;
 using WebApiKalum.Dtos;
+using WebApiKalum.Dtos.Views;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Utilities
@@ -26,6 +27,8 @@ namespace WebApiKalum.Utilities
             CreateMap<CargoCreateDTO, Cargo>();
             CreateMap<Cargo, CargoListDTO>();
             CreateMap<ResultadoExamenAdmision, ResultadoExamenAdmisionListDTO>();
+            CreateMap<Alumno, AlumnoViewDTO>().ConstructUsing(e => new AlumnoViewDTO { NombreCompleto = $"{e.Apellidos} {e.Nombres}" });
+            CreateMap<Inscripcion, InscripcionesListDTO>();
         }
     }
 }

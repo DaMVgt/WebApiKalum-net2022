@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos;
 using WebApiKalum.Entities;
 
 namespace WebApiKalum.Controller
@@ -10,13 +12,15 @@ namespace WebApiKalum.Controller
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<InscripcionController> Logger;
-        public InscripcionController(KalumDbContext _dbContext, ILogger<InscripcionController> _Logger)
+        private readonly IMapper Mapper;
+        public InscripcionController(KalumDbContext _dbContext, ILogger<InscripcionController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Inscripcion>>> Get()
+        public async Task<ActionResult<IEnumerable<InscripcionesListDTO>>> Get()
         {
             Logger.LogDebug("Iniciando proceso de consulta de inscripciones en base de datos");
             List<Inscripcion> inscripciones = await DbContext.Inscripcion.Include(i => i.Jornada).Include(i => i.CarreraTecnica).Include(i => i.Alumno).ToListAsync();
@@ -25,11 +29,12 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning("No existen inscripciones en la base de datos");
                 return new NoContentResult();
             }
+            List<InscripcionesListDTO> lista = Mapper.Map<List<InscripcionesListDTO>>(inscripciones);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(inscripciones);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetInscripcion")]
-        public async Task<ActionResult<Inscripcion>> GetInscripcion(string id)
+        public async Task<ActionResult<InscripcionesListDTO>> GetInscripcion(string id)
         {
             Logger.LogDebug($"Iniciando el proceso de busca con el ID: {id}");
             var inscripcion = await DbContext.Inscripcion.Include(i => i.Jornada).Include(i => i.CarreraTecnica).Include(i => i.Alumno).FirstOrDefaultAsync(i => i.InscripcionId == id);
@@ -38,8 +43,9 @@ namespace WebApiKalum.Controller
                 Logger.LogWarning($"No existe una inscripcion con ID: {id}");
                 return new NoContentResult();
             }
+            var lista = Mapper.Map<InscripcionesListDTO>(inscripcion);
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(inscripcion);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<Inscripcion>> PostInscripcion([FromBody] Inscripcion value)
