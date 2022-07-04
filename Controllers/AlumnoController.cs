@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum.Dtos.Lists;
 using WebApiKalum.Entities;
+using WebApiKalum.Utilities;
 
 namespace WebApiKalum.Controllers
 {
@@ -32,6 +33,23 @@ namespace WebApiKalum.Controllers
             List<AlumnoListDTO> lista = Mapper.Map<List<AlumnoListDTO>>(alumnos);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
             return Ok(lista);
+        }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<AlumnoListDTO>>> GetPaginacion(int page)
+        {
+            var queryable = await DbContext.Alumno.Include(a => a.Inscripciones).ToListAsync();
+            var lista = Mapper.Map<List<AlumnoListDTO>>(queryable).AsQueryable();
+            var paginacion = new HttpResponsePaginacion<AlumnoListDTO>(lista, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                Logger.LogWarning("No existen alumnos en la base de datos");
+                return NoContent();
+            }
+            else
+            {
+                Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
+                return Ok(paginacion);
+            }
         }
         [HttpGet("{id}", Name = "GetAlumno")]
         public async Task<ActionResult<Alumno>> GetAlumno(string id)

@@ -35,6 +35,23 @@ namespace WebApiKalum.Controllers
             Logger.LogInformation("Se ejecuto la preticion de forma exitosa");
             return Ok(lista);
         }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<AspiranteListDTO>>> GetPaginacion(int page)
+        {
+            var queryable = await DbContext.Aspirante.Include(a => a.Jornada).Include(a => a.CarreraTecnica).Include(a => a.ExamenAdmision).ToListAsync();
+            var lista = Mapper.Map<List<AspiranteListDTO>>(queryable).AsQueryable();
+            var paginacion = new HttpResponsePaginacion<AspiranteListDTO>(lista, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                Logger.LogWarning("No existen aspirantes en la base de datos");
+                return NoContent();
+            }
+            else
+            {
+                Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
+                return Ok(paginacion);
+            }
+        }
         [HttpGet("{id}", Name = "GetAspirante")]
         public async Task<ActionResult<AspiranteListDTO>> GetAspirante(string id)
         {
@@ -76,7 +93,7 @@ namespace WebApiKalum.Controllers
             Logger.LogInformation($"Se creo un aspirante con el id: {value.NoExpediente}");
             return Ok(value);
         }
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<ActionResult> PutAspirante(string id, [FromBody] Aspirante value)
         {
             Logger.LogDebug($"Iniciando el proceso de actualizacion de un aspirante con el id: {id}");
@@ -109,7 +126,8 @@ namespace WebApiKalum.Controllers
                 Logger.LogWarning($"No existe un aspirante con el id {id}");
                 return NotFound();
             }
-            else{
+            else
+            {
                 DbContext.Aspirante.Remove(aspirante);
                 await DbContext.SaveChangesAsync();
                 Logger.LogInformation("Finalizando el proceso de eliminacion deun aspirante");

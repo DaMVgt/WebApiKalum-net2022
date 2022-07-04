@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum.Dtos.Lists;
 using WebApiKalum.Entities;
+using WebApiKalum.Utilities;
 
 namespace WebApiKalum.Controller
 {
@@ -31,6 +32,23 @@ namespace WebApiKalum.Controller
             List<CuentaXCobrarListDTO> lista = Mapper.Map<List<CuentaXCobrarListDTO>>(cuentaXCobrar);
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
             return Ok(lista);
+        }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<CuentaXCobrarListDTO>>> GetPaginacion(int page)
+        {
+            var queryable = await DbContext.CuentaXCobrar.ToListAsync();
+            var lista = Mapper.Map<List<CuentaXCobrarListDTO>>(queryable).AsQueryable();
+            var paginacion = new HttpResponsePaginacion<CuentaXCobrarListDTO>(lista, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                Logger.LogWarning("No existen cuentas por cobrar en la base de datos");
+                return NoContent();
+            }
+            else
+            {
+                Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
+                return Ok(paginacion);
+            }
         }
         [HttpGet("{id}", Name = "GetCuentaXCobrar")]
         public async Task<ActionResult<CuentaXCobrarListDTO>> GetCuentaxCobrar(string id)

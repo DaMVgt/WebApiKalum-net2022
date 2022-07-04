@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApiKalum.Dtos.Creates;
 using WebApiKalum.Dtos.Lists;
 using WebApiKalum.Entities;
+using WebApiKalum.Utilities;
 
 namespace WebApiKalum.Controllers
 {
@@ -33,6 +34,23 @@ namespace WebApiKalum.Controllers
             List<CargoListDTO> lista = Mapper.Map<List<CargoListDTO>>(cargos);
             Logger.LogInformation("Se ejecutó la peticion de forma exitosa");
             return Ok(lista);
+        }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<CargoListDTO>>> GetPaginacion(int page)
+        {
+            var queryable = await DbContext.Cargo.Include(c => c.CuentasXCobrar).ToListAsync();
+            var lista = Mapper.Map<List<CargoListDTO>>(queryable).AsQueryable();
+            var paginacion = new HttpResponsePaginacion<CargoListDTO>(lista, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                Logger.LogWarning("No existen cargos en la base de datos");
+                return NoContent();
+            }
+            else
+            {
+                Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
+                return Ok(paginacion);
+            }
         }
         [HttpGet("{id}", Name = "GetCargo")]
         public async Task<ActionResult<CargoListDTO>> GetCargo(string id)
