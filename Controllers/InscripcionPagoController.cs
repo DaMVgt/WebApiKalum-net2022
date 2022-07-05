@@ -1,5 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiKalum.Dtos.Creates;
+using WebApiKalum.Dtos.Lists;
 using WebApiKalum.Entities;
 using WebApiKalum.Utilities;
 
@@ -11,30 +14,33 @@ namespace WebApiKalum.Controller
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<InscripcionPagoController> Logger;
-        public InscripcionPagoController(KalumDbContext _dbContext, ILogger<InscripcionPagoController> _Logger)
+        private readonly IMapper Mapper;
+        public InscripcionPagoController(KalumDbContext _dbContext, ILogger<InscripcionPagoController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _dbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InscripcionPago>>> Get()
+        public async Task<ActionResult<IEnumerable<InscripcionPagoListDTO>>> Get()
         {
             Logger.LogDebug("Iniciando el proceso de consulta de pagos de inscripciones en la base de datos");
-            List<InscripcionPago> inscripcionPagos = await DbContext.InscripcionPago.ToListAsync();
+            List<InscripcionPago> inscripcionPagos = await DbContext.InscripcionPago.Include(ip => ip.Aspirante).ToListAsync();
             if (inscripcionPagos == null || inscripcionPagos.Count == 0)
             {
                 Logger.LogWarning("No existen cargos en la base de datos");
                 return new NoContentResult();
             }
             Logger.LogInformation("Se ejecuto la peticion de forma exitosa");
-            return Ok(inscripcionPagos);
+            List<InscripcionPagoListDTO> lista = Mapper.Map<List<InscripcionPagoListDTO>>(inscripcionPagos);
+            return Ok(lista);
         }
         [HttpGet("page/{page}")]
-        public async Task<ActionResult<IEnumerable<InscripcionPago>>> GetPaginacion(int page)
+        public async Task<ActionResult<IEnumerable<InscripcionPagoListDTO>>> GetPaginacion(int page)
         {
-            var queryable = await DbContext.InscripcionPago.ToListAsync();
-            var lista = queryable.AsQueryable();
-            var paginacion = new HttpResponsePaginacion<InscripcionPago>(lista, page);
+            var queryable = await DbContext.InscripcionPago.Include(ip => ip.Aspirante).ToListAsync();
+            var lista = Mapper.Map<List<InscripcionPagoListDTO>>(queryable).AsQueryable(); 
+            var paginacion = new HttpResponsePaginacion<InscripcionPagoListDTO>(lista, page);
             if (paginacion.Content == null && paginacion.Content.Count == 0)
             {
                 Logger.LogWarning("No existen inscripciones en la base de datos");
@@ -60,20 +66,21 @@ namespace WebApiKalum.Controller
             return Ok(inscripcionPago);
         }
         [HttpPost]
-        public async Task<ActionResult<InscripcionPago>> PostInscripcionPago([FromBody] InscripcionPago value)
+        public async Task<ActionResult<InscripcionPago>> PostInscripcionPago([FromBody] InscripcionPagoCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de creacion de un pago de inscripcion");
-            value.BoletaPago = Guid.NewGuid().ToString().ToUpper();
+            InscripcionPago nuevo = Mapper.Map<InscripcionPago>(value);
+            nuevo.BoletaPago = Guid.NewGuid().ToString().ToUpper();
             Aspirante aspirante = await DbContext.Aspirante.FirstOrDefaultAsync(a => a.NoExpediente == value.NoExpediente);
             if (aspirante == null)
             {
                 Logger.LogInformation($"No existe un aspirante con el id {value.NoExpediente}");
                 return BadRequest();
             }
-            await DbContext.InscripcionPago.AddAsync(value);
+            await DbContext.InscripcionPago.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
-            Logger.LogInformation($"Se creo un pago de inscripcion con el Id: {value.BoletaPago}");
-            return Ok(value);
+            Logger.LogInformation($"Se creo un pago de inscripcion con el Id: {nuevo.BoletaPago}");
+            return Ok(nuevo);
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult<InscripcionPago>> DeleteInscripcionPago(string id)

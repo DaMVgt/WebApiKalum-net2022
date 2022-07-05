@@ -32,6 +32,8 @@ namespace WebApiKalum.Utilities
             CreateMap<Inscripcion, InscripcionesListDTO>();
             CreateMap<InversionCarreraTecnica, InversionCarreraTecnicaListDTO>();
             CreateMap<InversionCarreraTecnicaCreateDTO, InversionCarreraTecnica>();
+            CreateMap<InscripcionPagoCreateDTO, InscripcionPago>();
+            CreateMap<InscripcionPago, InscripcionPagoListDTO>();
         }
     }
 }
