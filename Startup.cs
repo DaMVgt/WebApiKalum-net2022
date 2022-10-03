@@ -6,6 +6,7 @@ namespace WebApiKalum
     public class Startup
     {
         public IConfiguration Configuration { get; }
+        private readonly string OriginKalum = "OriginKalum";
         public Startup(IConfiguration configuration)
         {
             this.Configuration = configuration;
@@ -13,6 +14,11 @@ namespace WebApiKalum
 
         public void ConfigureServices(IServiceCollection _services)
         {
+            _services.AddCors(option => {
+                option.AddPolicy(name: OriginKalum, builder => {
+                    builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+                });
+            });
             _services.AddTransient<ActionFilter>();
             _services.AddControllers(options => options.Filters.Add(typeof(ErrorFilterException)));
             _services.AddAutoMapper(typeof(Startup));
@@ -32,6 +38,7 @@ namespace WebApiKalum
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseCors(OriginKalum);
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();

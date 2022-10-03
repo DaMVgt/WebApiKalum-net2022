@@ -65,3 +65,5 @@ D:\2022\Dev\KINAL\net\Prod\WebApiKalum\bin\Debug\net6.0\Newtonsoft.Json.dll
 D:\2022\Dev\KINAL\net\Prod\WebApiKalum\bin\Debug\net6.0\Newtonsoft.Json.Bson.dll
 D:\2022\Dev\KINAL\net\Prod\WebApiKalum\bin\Debug\net6.0\AutoMapper.dll
 D:\2022\Dev\KINAL\net\Prod\WebApiKalum\bin\Debug\net6.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+D:\2022\Dev\KINAL\net\Prod\WebApiKalum\bin\Debug\net6.0\RabbitMQ.Client.dll
+D:\2022\Dev\KINAL\net\Prod\WebApiKalum\bin\Debug\net6.0\Test Api KalumManagement.postman_collection.json
