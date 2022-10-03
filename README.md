@@ -1,6 +1,5 @@
 # <center> Web API Kalum .NET Kinal 2022 </center>
 
----
 # Script creación de base de datos SQL
 ## Código para creación de entidades
 
@@ -373,3 +372,6 @@ end
 
 ## Test API Postman
 [JSON Postman](./Test%20Api%20KalumManagement.postman_collection.json)
+
+## Script SQL 
+[Script SQL](./ScriptSQL.ipynb)
